@@ -22,7 +22,7 @@ public struct Path {
 
     /// Create a Path from a given String
     public init(_ path: String) {
-        self.path = path
+        self.path = path.trim(right: "/")
     }
 
     /// Create a Path by joining multiple path components together
