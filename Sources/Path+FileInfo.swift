@@ -1,15 +1,14 @@
+import OperatingSystem
+
 extension Path {
+
     /// Test whether a file or directory exists at a specified path
     ///
     /// - Returns: `false` iff the path doesn't exist on disk or its existence could not be
     ///   determined
     ///
     public var exists: Bool {
-        #if os(Linux)
-            return Path.fileManager.fileExistsAtPath(self.path)
-        #else
-            return Path.fileManager.fileExists(atPath:self.path)
-        #endif
+		return StatInfo(path: self).exists
     }
 
     /// Test whether a path is a directory.
@@ -19,19 +18,7 @@ extension Path {
     ///   could not be determined
     ///
     public var isDirectory: Bool {
-        var directory = ObjCBool(false)
-
-        #if os(Linux)
-            guard Path.fileManager.fileExistsAtPath(normalize().path, isDirectory: &directory) else {
-                return false
-            }
-        #else
-            guard Path.fileManager.fileExists(atPath: normalize().path, isDirectory: &directory) else {
-                return false
-            }
-        #endif
-
-        return directory.boolValue
+		return StatInfo(path: self).directory
     }
 
     /// Test whether a path is a regular file.
@@ -42,19 +29,8 @@ extension Path {
     ///   could not be determined
     ///
     public var isFile: Bool {
-        var directory = ObjCBool(false)
-
-        #if os(Linux)
-            guard Path.fileManager.fileExistsAtPath(normalize().path, isDirectory: &directory) else {
-                return false
-            }
-        #else
-            guard Path.fileManager.fileExists(atPath: normalize().path, isDirectory: &directory) else {
-                return false
-            }
-        #endif
-
-        return !directory.boolValue
+		let statInfo = StatInfo(path: self)
+		return statInfo.exists && !statInfo.directory
     }
 
     /// Test whether a path is a symbolic link.
@@ -63,17 +39,7 @@ extension Path {
     ///   or its existence could not be determined
     ///
     public var isSymlink: Bool {
-        do {
-            #if os(Linux)
-                let _ = try Path.fileManager.destinationOfSymbolicLinkAtPath(path)
-            #else
-                let _ = try Path.fileManager.destinationOfSymbolicLink(atPath: path)
-            #endif
-
-            return true
-        } catch {
-            return false
-        }
+		return StatInfo(path: self).link
     }
 
     /// Test whether a path is readable
@@ -83,11 +49,7 @@ extension Path {
     ///   file could not be determined.
     ///
     public var isReadable: Bool {
-        #if os(Linux)
-            return Path.fileManager.isReadableFileAtPath(self.path)
-        #else
-            return Path.fileManager.isReadableFile(atPath: self.path)
-        #endif
+		return access(path, R_OK) == 0
     }
 
     /// Test whether a path is writeable
@@ -97,11 +59,7 @@ extension Path {
     ///   file could not be determined.
     ///
     public var isWritable: Bool {
-        #if os(Linux)
-            return Path.fileManager.isWritableFileAtPath(self.path)
-        #else
-            return Path.fileManager.isWritableFile(atPath: self.path)
-        #endif
+		return access(path, W_OK) == 0
     }
 
     /// Test whether a path is executable
@@ -111,25 +69,7 @@ extension Path {
     ///   file could not be determined.
     ///
     public var isExecutable: Bool {
-        #if os(Linux)
-            return Path.fileManager.isExecutableFileAtPath(self.path)
-        #else
-            return Path.fileManager.isExecutableFile(atPath: self.path)
-        #endif
-    }
-
-    /// Test whether a path is deletable
-    ///
-    /// - Returns: `true` if the current process has delete privileges for the file at path;
-    ///   otherwise `false` if the process does not have delete privileges or the existence of the
-    ///   file could not be determined.
-    ///
-    public var isDeletable: Bool {
-        #if os(Linux)
-            return Path.fileManager.isDeletableFileAtPath(self.path)
-        #else
-            return Path.fileManager.isDeletableFile(atPath: self.path)
-        #endif
+		return access(path, X_OK) == 0
     }
 
 }
