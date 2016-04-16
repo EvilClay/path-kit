@@ -13,12 +13,16 @@ extension Path {
     ///
     /// - Returns: the last path component without file extension
     ///
-    public var lastComponentWithoutExtension: String {
-        #if os(Linux)
-            return NSString(string: lastComponent).stringByDeletingPathExtension
-        #else
-            return NSString(string: lastComponent).deletingPathExtension
-        #endif
+    public var lastComponentWithoutExtension: String? {
+		guard let component = self.lastComponent, extensionIndex = component.extensionIndex else {
+			return nil
+		}
+
+		guard extensionIndex != component.startIndex && extensionIndex.predecessor() != component.startIndex else {
+			return nil
+		}
+
+		return component[component.startIndex..<extensionIndex.predecessor()]
     }
 
     /// Splits the string representation on the directory separator.
@@ -41,12 +45,43 @@ extension Path {
     /// - Returns: the file extension
     ///
     public var `extension`: String? {
-        let pathExtension = NSString(string: path).pathExtension
-        if pathExtension.isEmpty {
-            return nil
-        }
+		guard let extensionIndex = path.extensionIndex else {
+			return nil
+		}
 
-        return pathExtension
+		return path[extensionIndex..<path.endIndex]
     }
+
+}
+
+extension String {
+
+	private var extensionIndex: String.Index? {
+		let characters = self.characters
+		let startIndex = characters.startIndex
+		var currentIndex = characters.endIndex
+
+		while currentIndex > startIndex {
+			let previousIndex = currentIndex.predecessor()
+			let char = characters[previousIndex]
+
+			guard char != "/" else {
+				return nil
+			}
+
+			guard char == "." else {
+				currentIndex = previousIndex
+				continue
+			}
+
+			if startIndex == previousIndex {
+				return nil
+			} else {
+				return currentIndex
+			}
+		}
+
+		return nil
+	}
 
 }
