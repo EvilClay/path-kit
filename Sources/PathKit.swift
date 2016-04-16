@@ -1,14 +1,6 @@
 // PathKit - Effortless path operations
 
-#if os(Linux)
-    import Glibc
-
-    let system_glob = Glibc.glob
-#else
-    import Darwin
-
-    let system_glob = Darwin.glob
-#endif
+import OperatingSystem
 
 #if !swift(>=3.0)
     typealias Collection = CollectionType
@@ -208,8 +200,8 @@ extension Path {
     ///
     /// - Returns: the last path component
     ///
-    public var lastComponent: String {
-        return NSString(string: path).lastPathComponent
+    public var lastComponent: String? {
+        return components?.last
     }
 
     /// The last path component without file extension
@@ -236,7 +228,13 @@ extension Path {
     /// - Returns: all path components
     ///
     public var components: [String] {
-        return NSString(string: path).pathComponents
+        var components = path.split(by: Path.separator)
+
+        if components.first == "" {
+            components[0] = Path.separator
+        }
+
+        return components
     }
 
     /// The file extension behind the last dot of the last component.
