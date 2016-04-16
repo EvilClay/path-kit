@@ -1,6 +1,8 @@
 // PathKit - Effortless path operations
 
 import OperatingSystem
+import String
+import C7
 
 /// Represents a filesystem path.
 public struct Path {
@@ -10,7 +12,10 @@ public struct Path {
     /// The underlying string representation
     internal var path: String
 
-    internal static var fileManager = NSFileManager.defaultManager()
+    enum Error: ErrorProtocol {
+        case CouldNotOpenFile
+        case Unreadable
+    }
 
     // MARK: Init
     public init() {
@@ -168,7 +173,7 @@ extension Path {
     /// - Returns: the last path component
     ///
     public var lastComponent: String? {
-        return components?.last
+        return components.last
     }
 
     /// The last path component without file extension
@@ -456,13 +461,29 @@ extension Path {
     ///
     /// - Returns: the current working directory of the process
     ///
-    public static var current: Path {
+    public static var current: Path? {
         get {
-            return self.init(Path.fileManager.currentDirectoryPath)
+            let cwd = getcwd(nil, Int(PATH_MAX))
+
+            guard cwd != nil else {
+                return nil
+            }
+
+            defer { free(cwd) }
+
+            guard let path = String(validatingUTF8: cwd) else {
+                return nil
+            }
+
+            return self.init(path)
         }
 
         set {
-            Path.fileManager.changeCurrentDirectoryPath(newValue.description)
+            guard let newValue = newValue?.path else {
+                return
+            }
+
+            OperatingSystem.chdir(newValue)
         }
     }
 
@@ -490,21 +511,13 @@ extension Path {
     ///   depending on the platform.
     ///
     public static var home: Path {
-        #if os(Linux)
-            return Path(NSProcessInfo.processInfo().environment["HOME"] ?? "/")
-        #else
-            return Path(NSHomeDirectory())
-        #endif
+        return Path(getenv(named: "HOME") ?? "/")
     }
 
     /// - Returns: the path of the temporary directory for the current user.
     ///
     public static var temporary: Path {
-        #if os(Linux)
-            return Path(NSProcessInfo.processInfo().environment["TMP"] ?? "/tmp")
-        #else
-            return Path(NSTemporaryDirectory())
-        #endif
+        return Path(getenv(named: "TMP") ?? "/")
     }
 
     /// - Returns: the path of a temporary directory unique for the process.
@@ -544,8 +557,52 @@ extension Path {
     ///
     /// - Returns: the contents of the file at the specified path.
     ///
-    public func read() throws -> NSData {
-        return try NSData(contentsOfFile: path, options: NSDataReadingOptions(rawValue: 0))
+    public func read() throws -> Data {
+        let fd = open(path, O_RDONLY)
+
+        if fd < 0 {
+            throw Error.CouldNotOpenFile
+        }
+        defer {
+            close(fd)
+        }
+
+        var info = stat()
+        let ret = withUnsafeMutablePointer(&info) { infoPointer -> Bool in
+            if fstat(fd, infoPointer) < 0 {
+                return false
+            }
+            return true
+        }
+
+        if !ret {
+            throw Error.Unreadable
+        }
+
+        let length = Int(info.st_size)
+
+        let rawData = malloc(length)
+        var remaining = Int(info.st_size)
+        var total = 0
+        while remaining > 0 {
+            let advanced = rawData.advanced(by: total)
+
+            let amt = read(fd, advanced, remaining)
+            if amt < 0 {
+                break
+            }
+            remaining -= amt
+            total += amt
+        }
+
+        if remaining != 0 {
+            throw Error.Unreadable
+        }
+
+        //thanks @Danappelxx
+        let data = UnsafeMutablePointer<UInt8>(rawData)
+        let buffer = UnsafeMutableBufferPointer<UInt8>(start: data, count: length)
+        return Data(buffer)
     }
 
     /// Reads the file contents and encoded its bytes to string applying the given encoding.
@@ -659,7 +716,7 @@ extension Path {
         }
 
         let flags = GLOB_TILDE | GLOB_BRACE | GLOB_MARK
-        if system_glob(cPattern, flags, nil, &gt) == 0 {
+        if glob(cPattern, flags, nil, &gt) == 0 {
             #if os(Linux)
                 let matchc = gt.gl_pathc
             #else
@@ -824,4 +881,14 @@ extension Array {
     var fullSlice: ArraySlice<Element> {
         return self[0..<self.endIndex]
     }
+}
+
+private func getenv(named name: String) -> String? {
+    let value = OperatingSystem.getenv(name)
+
+    guard value != nil else {
+        return nil
+    }
+
+    return String(validatingUTF8: value)
 }
