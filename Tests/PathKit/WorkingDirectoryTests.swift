@@ -1,7 +1,13 @@
 import XCTest
+import OperatingSystem
+
 @testable import PathKit
 
 class WorkingDirectoryTests: BaseTests {
+
+    private enum TestError: ErrorProtocol {
+        case test
+    }
 
     func testCurrent() {
         let path = Path.current
@@ -21,17 +27,17 @@ class WorkingDirectoryTests: BaseTests {
     func testThrowingChdirWithThrowingClosure() {
         let current = Path.current
 
-        let testError = NSError(domain: "org.cocode.PathKit", code: 1, userInfo: nil)
-
         do {
             try Path("/usr/bin").chdir {
                 XCTAssertEqual(Path.current, Path("/usr/bin"))
-                throw testError
+                throw TestError.test
             }
 
             XCTFail("testError should’ve thrown")
+        } catch is TestError {
+            // Do nothing
         } catch {
-            XCTAssertEqual(error as NSError, testError)
+            XCTFail("Unexpected error: \(error)")
         }
 
         XCTAssertEqual(Path.current, current)
@@ -40,14 +46,13 @@ class WorkingDirectoryTests: BaseTests {
     func testThrowingChdirWithNonThrowingClosure() {
         let current = Path.current
 
-        let error = NSError(domain: "org.cocode.PathKit", code: 1, userInfo: nil)
         AssertNoThrow {
             try Path("/usr/bin").chdir {
                 XCTAssertEqual(Path.current, Path("/usr/bin"))
                 if Path.current != Path("/usr/bin") {
                     // Will never happen as long as the previous assert succeeds,
                     // but prevents a warning that the closure doesn't throw.
-                    throw error
+                    throw TestError.test
                 }
             }
         }
