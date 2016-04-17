@@ -32,11 +32,15 @@ extension Path {
     public func mkpath() throws {
         var path = ""
 
-        for component in components {
-            path += component
+        for (i, component) in components.enumerated() {
+            if i == 0 {
+                path = component
+            } else {
+                guard component != "/" else {
+                    continue
+                }
 
-            guard component != "/" else {
-                continue
+                path += "/" + component
             }
 
             let result = OperatingSystem.mkdir(path, S_IRWXU | S_IRWXG | S_IRWXO)
