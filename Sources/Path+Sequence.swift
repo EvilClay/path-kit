@@ -27,7 +27,7 @@ extension Path: Sequence {
 
             let path: Path = iterator.path.path + element.name
 
-            if element.type == DT_DIR && appendIterator(for: path) {
+            if element.type == Int32(DT_DIR) && appendIterator(for: path) {
                 descended = true
             } else {
                 descended = false

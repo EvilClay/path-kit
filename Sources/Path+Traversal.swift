@@ -42,7 +42,7 @@ extension Path {
             let path = self + Path(item.name)
             children.append(path)
 
-            if item.type == DT_DIR {
+            if item.type == Int32(DT_DIR) {
                 children += try path.recursiveChildren()
             }
         }
@@ -50,26 +50,4 @@ extension Path {
         return children
     }
 
-}
-
-private func read(dir: UnsafeMutablePointer<DIR>, handler: (name: String, type: Int32?) throws -> Void) throws {
-    var entry = readdir(dir)
-
-    while entry != nil {
-        let name = withUnsafePointer(&entry.pointee.d_name, { (ptr) -> String? in
-            let int8Ptr = unsafeBitCast(ptr, to: UnsafePointer<Int8>.self)
-            return String(cString: int8Ptr)
-        })
-
-        if let name = name where name != "." && name != ".." {
-            let type = withUnsafePointer(&entry.pointee.d_type, { (ptr) -> Int32? in
-                let int32Ptr = unsafeBitCast(ptr, to: UnsafePointer<UInt8>.self)
-                return Int32(int32Ptr.pointee)
-            })
-
-            try handler(name: name, type: type)
-        }
-
-        entry = readdir(dir)
-    }
 }
