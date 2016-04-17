@@ -6,8 +6,10 @@ extension Path {
         case unimplemented
         case mkdir(Int, String)
         case move(Int, String, String)
+        case copy(Int, String, String)
         case delete(Int, String)
         case symlink(Int, String, String)
+        case notFound(String)
     }
 
     /// Create the directory.
@@ -91,8 +93,23 @@ extension Path {
     ///   directory in its new location.
     ///
     public func copy(destination: Path) throws {
-        // TODO
-        throw FileError.unimplemented
+        let info = StatInfo(path: self)
+
+        guard info.exists else {
+            throw FileError.notFound(path)
+        }
+
+        var flags = COPYFILE_ACL | COPYFILE_STAT | COPYFILE_XATTR | COPYFILE_DATA
+
+        if info.directory {
+            flags |= COPYFILE_RECURSIVE
+        }
+
+        let result = copyfile(path, destination.path, nil, copyfile_flags_t(flags))
+
+        if result != 0 {
+            throw FileError.copy(Int(errno), path, destination.path)
+        }
     }
 
     /// Creates a hard link at a new destination.
