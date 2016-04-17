@@ -3,11 +3,11 @@ import OperatingSystem
 extension Path {
 
     enum FileError: ErrorProtocol {
-        case unimplemented
         case mkdir(Int, String)
         case move(Int, String, String)
         case copy(Int, String, String)
         case delete(Int, String)
+        case link(Int, String, String)
         case symlink(Int, String, String)
         case notFound(String)
     }
@@ -117,8 +117,11 @@ extension Path {
     /// - Parameter destination: The location where the link will be created.
     ///
     public func link(destination: Path) throws {
-        // TODO
-        throw FileError.unimplemented
+        let result = OperatingSystem.link(path, destination.path)
+
+        if result != 0 {
+            throw FileError.link(Int(errno), path, destination.path)
+        }
     }
 
     /// Creates a symbolic link at a new destination.
