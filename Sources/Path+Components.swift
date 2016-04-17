@@ -51,7 +51,7 @@ extension Path {
 extension String {
 
     internal var pathComponents: [String] {
-        var components = self.split(by: Path.separator)
+        var components = self.trimTrailingSlashes().split(by: Path.separator)
 
         if components.first == "" {
             components[0] = Path.separator

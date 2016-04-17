@@ -22,14 +22,32 @@ public struct Path {
 
     /// Create a Path by joining multiple path components together
     public init<S: Collection where S.Iterator.Element == String>(components: S) {
-        if components.isEmpty {
+        guard !components.isEmpty else {
             path = "."
-        } else if components.first == Path.separator && components.count > 1 {
-            let p = components.joined(separator: Path.separator)
-            path = p[p.startIndex.successor()..<p.endIndex]
-        } else {
-            path = components.joined(separator: Path.separator)
+            return
         }
+
+        var first = true
+        var components = components.map { $0.trimTrailingSlashes() }.filter {
+            if first {
+                first = false
+                return true
+            } else {
+                return $0 != "/" && $0.characters.count > 0
+            }
+        }
+
+        let absolute = components.first == "/"
+        let prefix: String
+
+        if absolute {
+            components.removeFirst()
+            prefix = "/"
+        } else {
+            prefix = ""
+        }
+
+        path = prefix + components.joined(separator: Path.separator)
     }
 
 }
