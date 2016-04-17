@@ -11,7 +11,7 @@ extension Path {
     /// - Returns: the normalized path of the parent directory
     ///
     public func parent() -> Path {
-        return self + "/.."
+        return path + ".."
     }
 
     /// Performs a shallow enumeration in a directory
