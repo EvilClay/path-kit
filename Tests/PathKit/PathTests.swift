@@ -60,7 +60,7 @@ class PathTests: XCTestCase {
     func testMatches() {
         XCTAssertFalse(Path("/var")  ~= "~")
         XCTAssertTrue(Path("/Users") ~= "/Users")
-        XCTAssertTrue(Path("/Users") ~= "~/..")
+        XCTAssertTrue(Path.home.parent() ~= "~/..")
     }
 
     // MARK: Comparable
