@@ -23,3 +23,12 @@ class GlobTests: BaseTests {
     }
 
 }
+
+extension GlobTests {
+    static var allTests: [(String, GlobTests -> () throws -> Void)] {
+        return [
+            ("testStaticGlob", testStaticGlob),
+            ("testPathGlob", testPathGlob),
+        ]
+    }
+}

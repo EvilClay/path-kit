@@ -40,3 +40,18 @@ class FileInfoTests: BaseTests {
     }
 
 }
+
+extension FileInfoTests {
+    static var allTests: [(String, FileInfoTests -> () throws -> Void)] {
+        return [
+            ("testExistingPathExists", testExistingPathExists),
+            ("testNonExistingPathDoesntExist", testNonExistingPathDoesntExist),
+            ("testIsDirectory", testIsDirectory),
+            ("testIsSymlink", testIsSymlink),
+            ("testIsFile", testIsFile),
+            ("testIsExecutable", testIsExecutable),
+            ("testIsReadable", testIsReadable),
+            ("testIsWriteable", testIsWriteable),
+        ]
+    }
+}

@@ -98,3 +98,18 @@ class ReadWriteTests: BaseTests {
     }
 
 }
+
+extension ReadWriteTests {
+    static var allTests: [(String, ReadWriteTests -> () throws -> Void)] {
+        return [
+            ("testReadData", testReadData),
+            ("testReadNonExistingData", testReadNonExistingData),
+            ("testReadString", testReadString),
+            ("testReadNonExistingString", testReadNonExistingString),
+            ("testWriteData", testWriteData),
+            ("testWriteDataThrowsOnFailure", testWriteDataThrowsOnFailure),
+            ("testWriteString", testWriteString),
+            ("testWriteStringThrowsOnFailure", testWriteStringThrowsOnFailure),
+        ]
+    }
+}

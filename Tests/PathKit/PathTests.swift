@@ -101,3 +101,22 @@ class PathTests: XCTestCase {
     }
 
 }
+
+extension PathTests {
+    static var allTests: [(String, PathTests -> () throws -> Void)] {
+        return [
+            ("testSeparator", testSeparator),
+            ("testInitialization", testInitialization),
+            ("testInitializationWithString", testInitializationWithString),
+            ("testInitializationWithComponents", testInitializationWithComponents),
+            ("testStringLiteralIsConvertableToPath", testStringLiteralIsConvertableToPath),
+            ("testEqualPath", testEqualPath),
+            ("testUnEqualPath", testUnEqualPath),
+            ("testHashable", testHashable),
+            ("testPathDescription", testPathDescription),
+            ("testMatches", testMatches),
+            ("testCompare", testCompare),
+            ("testAppendPath", testAppendPath),
+        ]
+    }
+}

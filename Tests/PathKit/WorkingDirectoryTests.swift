@@ -61,3 +61,14 @@ class WorkingDirectoryTests: BaseTests {
     }
 
 }
+
+extension WorkingDirectoryTests {
+    static var allTests: [(String, WorkingDirectoryTests -> () throws -> Void)] {
+        return [
+            ("testCurrent", testCurrent),
+            ("testChdir", testChdir),
+            ("testThrowingChdirWithThrowingClosure", testThrowingChdirWithThrowingClosure),
+            ("testThrowingChdirWithNonThrowingClosure", testThrowingChdirWithNonThrowingClosure),
+        ]
+    }
+}

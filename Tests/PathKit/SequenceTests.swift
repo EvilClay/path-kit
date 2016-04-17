@@ -21,3 +21,11 @@ class SequenceTests: BaseTests {
     }
 
 }
+
+extension SequenceTests {
+    static var allTests: [(String, SequenceTests -> () throws -> Void)] {
+        return [
+            ("testSequenceType", testSequenceType),
+        ]
+    }
+}

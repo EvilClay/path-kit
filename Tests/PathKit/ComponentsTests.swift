@@ -26,3 +26,14 @@ class ComponentsTests: BaseTests {
     }
 
 }
+
+extension ComponentsTests {
+    static var allTests: [(String, ComponentsTests -> () throws -> Void)] {
+        return [
+            ("testLastComponent", testLastComponent),
+            ("testLastComponentWithoutExtension", testLastComponentWithoutExtension),
+            ("testComponents", testComponents),
+            ("testExtension", testExtension),
+        ]
+    }
+}

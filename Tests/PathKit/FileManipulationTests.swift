@@ -1,7 +1,7 @@
 import XCTest
 @testable import PathKit
 
-class ManipulationTests: BaseTests {
+class FileManipulationTests: BaseTests {
 
     var fixtureFile: Path {
         return fixtures + "file"
@@ -142,4 +142,23 @@ class ManipulationTests: BaseTests {
         }
     }
 
+}
+
+extension FileManipulationTests {
+    static var allTests: [(String, FileManipulationTests -> () throws -> Void)] {
+        return [
+            ("testMkdir", testMkdir),
+            ("testMkdirWithNonExistingImmediateDirFails", testMkdirWithNonExistingImmediateDirFails),
+            ("testMkdirWithExistingDirFails", testMkdirWithExistingDirFails),
+            ("testMkpath", testMkpath),
+            ("testMkpathWithExistingDir", testMkpathWithExistingDir),
+            ("testCopy", testCopy),
+            ("testMove", testMove),
+            ("testLink", testLink),
+            ("testSymlink", testSymlink),
+            ("testRelativeSymlinkDestination", testRelativeSymlinkDestination),
+            ("testAbsoluteSymlinkDestination", testAbsoluteSymlinkDestination),
+            ("testRelativeSymlinkDestinationInSameDirectory", testRelativeSymlinkDestinationInSameDirectory),
+        ]
+    }
 }

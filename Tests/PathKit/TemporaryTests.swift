@@ -15,3 +15,12 @@ class TemporaryTests: BaseTests {
     }
 
 }
+
+extension TemporaryTests {
+    static var allTests: [(String, TemporaryTests -> () throws -> Void)] {
+        return [
+            ("testHomeDir", testHomeDir),
+            ("testTemporaryDir", testTemporaryDir),
+        ]
+    }
+}

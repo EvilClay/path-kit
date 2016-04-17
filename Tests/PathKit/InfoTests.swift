@@ -44,3 +44,18 @@ class InfoTests: BaseTests {
     }
 
 }
+
+extension InfoTests {
+    static var allTests: [(String, InfoTests -> () throws -> Void)] {
+        return [
+            ("testConvertingRelativeToAbsolute", testConvertingRelativeToAbsolute),
+            ("testConvertingAbsoluteToAbsolute", testConvertingAbsoluteToAbsolute),
+            ("testAbsolutePathIsAbsolute", testAbsolutePathIsAbsolute),
+            ("testRelativePathIsNotAbsolute", testRelativePathIsNotAbsolute),
+            ("testRelativePathIsRelative", testRelativePathIsRelative),
+            ("testAbsolutePathIsNotRelative", testAbsolutePathIsNotRelative),
+            ("testNormalize", testNormalize),
+            ("testAbbreviate", testAbbreviate),
+        ]
+    }
+}

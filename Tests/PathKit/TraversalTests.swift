@@ -33,3 +33,14 @@ class TraversalTests: BaseTests {
     }
 
 }
+
+extension TraversalTests {
+    static var allTests: [(String, TraversalTests -> () throws -> Void)] {
+        return [
+            ("testParent", testParent),
+            ("testChildren", testChildren),
+            ("testChildrenWithoutDirectories", testChildrenWithoutDirectories),
+            ("testRecursiveChildren", testRecursiveChildren),
+        ]
+    }
+}
