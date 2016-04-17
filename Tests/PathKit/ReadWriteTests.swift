@@ -4,6 +4,10 @@ import C7
 
 class ReadWriteTests: BaseTests {
 
+    private func nonExistentPath() -> Path {
+        return Path.temporary + UUID.make()
+    }
+
     func testReadData() {
         let path = Path("/etc/manpaths")
         let contents = AssertNoThrow(try path.read())
@@ -13,14 +17,15 @@ class ReadWriteTests: BaseTests {
     }
 
     func testReadNonExistingData() {
-        let path = Path("/tmp/pathkit-testing")
+        let path = self.nonExistentPath()
 
         do {
             try path.read()
             XCTFail("Error was not thrown from `read()`")
-        } catch let error as NSError {
-            XCTAssertEqual(error.domain, NSCocoaErrorDomain)
-            XCTAssertEqual(error.code, NSFileReadNoSuchFileError)
+        } catch Path.ReadWriteError.CouldNotOpenFile {
+            return
+        } catch {
+            XCTFail("Unexpected error: \(error)")
         }
     }
 
@@ -32,19 +37,20 @@ class ReadWriteTests: BaseTests {
     }
 
     func testReadNonExistingString() {
-        let path = Path("/tmp/pathkit-testing")
+        let path = self.nonExistentPath()
 
         do {
             try path.readString()
-            XCTFail("Error was not thrown from `read()`")
-        } catch let error as NSError {
-            XCTAssertEqual(error.domain, NSCocoaErrorDomain)
-            XCTAssertEqual(error.code, NSFileReadNoSuchFileError)
+            XCTFail("Error was not thrown from `readString()`")
+        } catch Path.ReadWriteError.CouldNotOpenFile {
+            return
+        } catch {
+            XCTFail("Unexpected error: \(error)")
         }
     }
 
     func testWriteData() {
-        let path = Path("/tmp/pathkit-testing")
+        let path = self.nonExistentPath()
         let data = Data("Hi")
 
         XCTAssertFalse(path.exists)
@@ -61,14 +67,15 @@ class ReadWriteTests: BaseTests {
         do {
             try path.write(data: data)
             XCTFail("Error was not thrown from `write()`")
-        } catch let error as NSError {
-            XCTAssertEqual(error.domain, NSCocoaErrorDomain)
-            XCTAssertEqual(error.code, NSFileWriteNoPermissionError)
+        } catch Path.ReadWriteError.CouldNotOpenFile {
+            return
+        } catch {
+            XCTFail("Unexpected error: \(error)")
         }
     }
 
     func testWriteString() {
-        let path = Path("/tmp/pathkit-testing")
+        let path = self.nonExistentPath()
 
         XCTAssertFalse(path.exists)
 
@@ -83,9 +90,10 @@ class ReadWriteTests: BaseTests {
         do {
             try path.write(string: "hi")
             XCTFail("Error was not thrown from `write()`")
-        } catch let error as NSError {
-            XCTAssertEqual(error.domain, NSCocoaErrorDomain)
-            XCTAssertEqual(error.code, NSFileWriteNoPermissionError)
+        } catch Path.ReadWriteError.CouldNotOpenFile {
+            return
+        } catch {
+            XCTFail("Unexpected error: \(error)")
         }
     }
 
