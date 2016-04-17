@@ -8,7 +8,9 @@ class TemporaryTests: BaseTests {
     }
 
     func testTemporaryDir() {
-        XCTAssertEqual((Path.temporary + "../../..").normalize(), Path("/var/folders"))
+        // No good way to test this off of OS X
+        // XCTAssertEqual((Path.temporary + "../../..").normalize(), Path("/var/folders"))
+
         XCTAssertTrue(Path.temporary.exists)
     }
 
