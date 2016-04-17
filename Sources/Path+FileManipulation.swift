@@ -59,15 +59,22 @@ extension Path {
     ///   removed.
     ///
     public func delete() throws {
-        let result = nftw(path, { (path, sb, typeflag, ftw) -> Int32 in
-            let result = remove(path)
+        let info = StatInfo(path: self)
+        let result: Int32
 
-            if result != 0 {
-                perror(path)
-            }
+        if info.directory {
+            result = nftw(path, { (path, sb, typeflag, ftw) -> Int32 in
+                let result = remove(path)
 
-            return result
-        }, 64, FTW_DEPTH | FTW_PHYS)
+                if result != 0 {
+                    perror(path)
+                }
+
+                return result
+            }, 64, FTW_DEPTH | FTW_PHYS)
+        } else {
+            result = remove(path)
+        }
 
         if result != 0 {
             throw FileError.delete(Int(errno), path)
