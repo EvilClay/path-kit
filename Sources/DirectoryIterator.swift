@@ -1,9 +1,15 @@
 import OperatingSystem
 
+#if os(Linux)
+    typealias UnsafeDir = OpaquePointer
+#else
+    typealias UnsafeDir = UnsafeMutablePointer<DIR>
+#endif
+
 internal class DirectoryIterator: IteratorProtocol {
     typealias Element = (name: String, type: Int32?)
 
-    private let dir: UnsafeMutablePointer<DIR>
+    private let dir: UnsafeDir
     internal let path: Path
 
     init(path: Path) throws {
