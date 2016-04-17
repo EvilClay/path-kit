@@ -12,23 +12,23 @@ class TraversalTests: BaseTests {
 
     func testChildren() {
         AssertNoThrow {
-            let children = try fixtures.children()
-            XCTAssertEqual(children, ["directory", "file", "permissions", "symlinks"].map { fixtures + $0 })
+            let children = try fixtures.children().sorted()
+            XCTAssertEqual(children, ["directory", "file", "read", "permissions", "symlinks"].map { fixtures + $0 }.sorted())
         }
     }
 
     func testChildrenWithoutDirectories() {
         AssertNoThrow {
-            let children = try fixtures.children().filter { $0.isFile }
-            XCTAssertEqual(children, [fixtures + "file"])
+            let children = try fixtures.children().filter { $0.isFile }.sorted()
+            XCTAssertEqual(children, [fixtures + "file", fixtures + "read"].sorted())
         }
     }
 
     func testRecursiveChildren() {
         AssertNoThrow {
             let parent = fixtures + "directory"
-            let children = try parent.recursiveChildren()
-            XCTAssertEqual(children, ["child", "subdirectory", "subdirectory/child"].map { parent + $0 })
+            let children = try parent.recursiveChildren().sorted()
+            XCTAssertEqual(children, ["child", "subdirectory", "subdirectory/child"].map { parent + $0 }.sorted())
         }
     }
 
