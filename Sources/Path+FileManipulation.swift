@@ -21,7 +21,7 @@ extension Path {
     public func mkdir() throws {
         let result = OperatingSystem.mkdir(path, S_IRWXU | S_IRWXG | S_IRWXO)
 
-        if result != 0 && result != EEXIST {
+        if result != 0 {
             throw FileError.mkdir(Int(errno), path)
         }
     }
@@ -47,7 +47,7 @@ extension Path {
 
             let result = OperatingSystem.mkdir(path, S_IRWXU | S_IRWXG | S_IRWXO)
 
-            if result != 0 && result != EEXIST {
+            if result != 0 && errno != EEXIST {
                 throw FileError.mkdir(Int(errno), path)
             }
         }
