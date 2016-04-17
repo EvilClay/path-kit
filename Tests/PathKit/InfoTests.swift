@@ -39,8 +39,8 @@ class InfoTests: BaseTests {
     }
 
     func testAbbreviate() {
-        let path = Path("/Users/\(NSUserName())/Library")
-        XCTAssertEqual(path.abbreviate(), Path("~/Library"))
+        let path = Path.home + "lib"
+        XCTAssertEqual(path.abbreviate(), Path("~/lib"))
     }
 
 }
