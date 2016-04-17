@@ -5,8 +5,8 @@ import C7
 extension Path {
 
     enum ReadWriteError: ErrorProtocol {
-        case CouldNotOpenFile
-        case Unreadable
+        case CouldNotOpenFile(String)
+        case Unreadable(String)
     }
 
     /// Reads the file.
@@ -17,7 +17,7 @@ extension Path {
         let fd = open(path, O_RDONLY)
 
         if fd < 0 {
-            throw ReadWriteError.CouldNotOpenFile
+            throw ReadWriteError.CouldNotOpenFile(path)
         }
         defer {
             close(fd)
@@ -32,7 +32,7 @@ extension Path {
         }
 
         if !ret {
-            throw ReadWriteError.Unreadable
+            throw ReadWriteError.Unreadable(path)
         }
 
         let length = Int(info.st_size)
@@ -52,7 +52,7 @@ extension Path {
         }
 
         if remaining != 0 {
-            throw ReadWriteError.Unreadable
+            throw ReadWriteError.Unreadable(path)
         }
 
         //thanks @Danappelxx
@@ -78,7 +78,7 @@ extension Path {
         let file = fopen(path, "w")
 
         guard file != nil else {
-            throw ReadWriteError.CouldNotOpenFile
+            throw ReadWriteError.CouldNotOpenFile(path)
         }
 
         defer {

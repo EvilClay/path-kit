@@ -10,6 +10,7 @@ extension Path {
         case link(Int, String, String)
         case symlink(Int, String, String)
         case notFound(String)
+        case unimplemented(String)
     }
 
     /// Create the directory.
@@ -114,17 +115,83 @@ extension Path {
             throw FileError.notFound(path)
         }
 
-        var flags = COPYFILE_ACL | COPYFILE_STAT | COPYFILE_XATTR | COPYFILE_DATA
-
         if info.directory {
-            flags |= COPYFILE_RECURSIVE
+            try self.copyDirectory(to: destination, with: info)
+        } else {
+            try self.copyFile(to: destination, with: info)
+        }
+    }
+
+    private func copyFile(to destination: Path, with info: StatInfo) throws {
+        let input = open(path, O_RDONLY)
+
+        guard input >= 0 else {
+            throw ReadWriteError.CouldNotOpenFile(path)
         }
 
-        let result = copyfile(path, destination.path, nil, copyfile_flags_t(flags))
+        defer {
+            close(input)
+        }
+
+        let output = open(destination.path, O_RDWR | O_CREAT)
+
+        guard output >= 0 else {
+            throw ReadWriteError.CouldNotOpenFile(destination.path)
+        }
+
+        defer {
+            close(output)
+        }
+
+        var result = Int32(0)
+
+        #if os(Linux)
+            let chunkSize = 4096
+            var buffer: UnsafeMutablePointer<UInt8> = UnsafeMutablePointer(allocatingCapacity: chunkSize)
+            defer { buffer.deinitialize() }
+
+            while true {
+                var nread = OperatingSystem.read(input, &buffer, chunkSize)
+
+                if nread <= 0 {
+                    break
+                }
+
+                var nwritten = 0
+
+                repeat {
+                    nwritten = OperatingSystem.write(output, buffer, nread)
+
+                    if nwritten >= 0 {
+                        nread -= nwritten
+                        buffer += nwritten
+                    } else if errno != EINTR {
+                        result = -1
+                        break
+                    }
+                } while (nread > 0)
+            }
+        #else
+            let flags = COPYFILE_ACL | COPYFILE_STAT | COPYFILE_XATTR | COPYFILE_DATA
+            result = fcopyfile(input, output, nil, copyfile_flags_t(flags))
+        #endif
 
         if result != 0 {
             throw FileError.copy(Int(errno), path, destination.path)
         }
+    }
+
+    private func copyDirectory(to destination: Path, with info: StatInfo) throws {
+        #if os(Linux)
+            throw FileError.unimplemented("Copying directories is not supported on Linux")
+        #else
+            let flags = COPYFILE_ACL | COPYFILE_STAT | COPYFILE_XATTR | COPYFILE_DATA | COPYFILE_RECURSIVE
+            let result = copyfile(path, destination.path, nil, copyfile_flags_t(flags))
+
+            if result != 0 {
+                throw FileError.copy(Int(errno), path, destination.path)
+            }
+        #endif
     }
 
     /// Creates a hard link at a new destination.
