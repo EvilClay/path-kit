@@ -3,6 +3,12 @@ import String
 import C7
 
 extension Path {
+
+    enum ReadWriteError: ErrorProtocol {
+        case CouldNotOpenFile
+        case Unreadable
+    }
+
     /// Reads the file.
     ///
     /// - Returns: the contents of the file at the specified path.
@@ -11,7 +17,7 @@ extension Path {
         let fd = open(path, O_RDONLY)
 
         if fd < 0 {
-            throw Error.CouldNotOpenFile
+            throw ReadWriteError.CouldNotOpenFile
         }
         defer {
             close(fd)
@@ -26,7 +32,7 @@ extension Path {
         }
 
         if !ret {
-            throw Error.Unreadable
+            throw ReadWriteError.Unreadable
         }
 
         let length = Int(info.st_size)
@@ -37,7 +43,7 @@ extension Path {
         while remaining > 0 {
             let advanced = rawData.advanced(by: total)
 
-            let amt = read(fd, advanced, remaining)
+            let amt = OperatingSystem.read(fd, advanced, remaining)
             if amt < 0 {
                 break
             }
@@ -46,7 +52,7 @@ extension Path {
         }
 
         if remaining != 0 {
-            throw Error.Unreadable
+            throw ReadWriteError.Unreadable
         }
 
         //thanks @Danappelxx
@@ -55,54 +61,39 @@ extension Path {
         return Data(buffer)
     }
 
-    /// Reads the file contents and encoded its bytes to string applying the given encoding.
-    ///
-    /// - Parameter encoding: the encoding which should be used to decode the data.
-    ///   (by default: `NSUTF8StringEncoding`)
+    /// Reads the file contents and converts to string
     ///
     /// - Returns: the contents of the file at the specified path as string.
     ///
-    public func read(encoding: NSStringEncoding = NSUTF8StringEncoding) throws -> String {
-        #if os(Linux)
-            return try NSString(contentsOfFile: path, encoding: encoding).substringFromIndex(0) as String
-        #else
-            return try NSString(contentsOfFile: path, encoding: encoding).substring(from:0) as String
-        #endif
+    public func readString() throws -> String? {
+        let data = try self.read()
+        return try String(data: data)
     }
 
     /// Write a file.
     ///
-    /// - Note: Works atomically: the data is written to a backup file, and then — assuming no
-    ///   errors occur — the backup file is renamed to the name specified by path.
-    ///
     /// - Parameter data: the contents to write to file.
     ///
-    public func write(data: Data) throws {
-        #if os(Linux)
-            try data.writeToFile(normalize().path, options: .DataWritingAtomic)
-        #else
-            try data.write(toFile:normalize().path, options: .dataWritingAtomic)
-        #endif
+    public func write(data data: Data) throws {
+        let file = fopen(path, "w")
+
+        guard file != nil else {
+            throw ReadWriteError.CouldNotOpenFile
+        }
+
+        defer {
+            fclose(file)
+        }
+
+        fwrite(data.bytes, sizeof(Byte), data.bytes.count, file)
     }
 
-    /// Reads the file.
-    ///
-    /// - Note: Works atomically: the data is written to a backup file, and then — assuming no
-    ///   errors occur — the backup file is renamed to the name specified by path.
+    /// Writes the file.
     ///
     /// - Parameter string: the string to write to file.
     ///
-    /// - Parameter encoding: the encoding which should be used to represent the string as bytes.
-    ///   (by default: `NSUTF8StringEncoding`)
-    ///
-    /// - Returns: the contents of the file at the specified path as string.
-    ///
-    public func write(string: String, encoding: NSStringEncoding = NSUTF8StringEncoding) throws {
-        #if os(Linux)
-            try NSString(string: string).writeToFile(normalize().path, atomically: true, encoding: encoding)
-        #else
-            try NSString(string: string).write(toFile:normalize().path, atomically: true, encoding: encoding)
-        #endif
+    public func write(string string: String) throws {
+        try write(data: Data(string))
     }
 
 }
