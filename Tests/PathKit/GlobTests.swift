@@ -9,7 +9,7 @@ class GlobTests: BaseTests {
             let paths = Path.glob(pattern)
 
             let results = try (fixtures + "permissions").children().map { $0.absolute()! }
-            XCTAssertEqual(paths, results)
+            XCTAssertEqual(paths.sorted(), results.sorted())
         }
     }
 
@@ -18,7 +18,7 @@ class GlobTests: BaseTests {
             let paths = fixtures.glob("permissions/*able")
 
             let results = try (fixtures + "permissions").children().map { $0.absolute()! }
-            XCTAssertEqual(paths, results)
+            XCTAssertEqual(paths.sorted(), results.sorted())
         }
     }
 
