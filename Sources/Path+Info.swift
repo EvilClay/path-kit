@@ -38,7 +38,6 @@ extension Path {
         return (current + self).normalize()
     }
 
-
     internal func expandTilde() -> Path {
         guard path.hasPrefix("~") else {
             return self

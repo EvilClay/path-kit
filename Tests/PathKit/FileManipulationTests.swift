@@ -1,11 +1,7 @@
 import XCTest
 @testable import PathKit
 
-class ManipulationTests : XCTestCase {
-
-    var fixtures: Path {
-        return (Path(#file) + "../../../Fixtures")
-    }
+class ManipulationTests: BaseTests {
 
     var fixtureFile: Path {
         return fixtures + "file"
@@ -119,6 +115,30 @@ class ManipulationTests : XCTestCase {
             XCTAssertTrue(symlinkedFile.isFile)
             let symlinkDestination = try symlinkedFile.symlinkDestination()
             XCTAssertEqual(symlinkDestination, copiedFile.absolute())
+        }
+    }
+
+    func testRelativeSymlinkDestination() {
+        let path = fixtures + "symlinks/file"
+        AssertNoThrow {
+            let resolvedPath = try path.symlinkDestination()
+            XCTAssertEqual(resolvedPath.normalize(), fixtures + "file")
+        }
+    }
+
+    func testAbsoluteSymlinkDestination() {
+        let path = fixtures + "symlinks/swift"
+        AssertNoThrow {
+            let resolvedPath = try path.symlinkDestination()
+            XCTAssertEqual(resolvedPath, Path("/usr/bin/swift"))
+        }
+    }
+
+    func testRelativeSymlinkDestinationInSameDirectory() {
+        let path = fixtures + "symlinks/same-dir"
+        AssertNoThrow {
+            let resolvedPath = try path.symlinkDestination()
+            XCTAssertEqual(resolvedPath.normalize(), fixtures + "symlinks/file")
         }
     }
 
