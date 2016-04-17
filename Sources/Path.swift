@@ -10,11 +10,6 @@ public struct Path {
     /// The underlying string representation
     internal var path: String
 
-    enum Error: ErrorProtocol {
-        case CouldNotOpenFile
-        case Unreadable
-    }
-
     // MARK: Init
     public init() {
         self.path = ""
@@ -22,7 +17,7 @@ public struct Path {
 
     /// Create a Path from a given String
     public init(_ path: String) {
-        self.path = path.trim(right: "/")
+        self.path = path.trim(right: ["/"])
     }
 
     /// Create a Path by joining multiple path components together
@@ -31,12 +26,7 @@ public struct Path {
             path = "."
         } else if components.first == Path.separator && components.count > 1 {
             let p = components.joined(separator: Path.separator)
-            #if os(Linux)
-                let index = p.startIndex.distance( to: p.startIndex.successor())
-                path = NSString(string: p).substringFromIndex(index)
-            #else
-                path = p.substring(from: p.startIndex.successor())
-            #endif
+            path = p[p.startIndex.successor()..<p.endIndex]
         } else {
             path = components.joined(separator: Path.separator)
         }
@@ -71,7 +61,6 @@ extension Path: CustomStringConvertible {
         return self.path
     }
 }
-
 
 // MARK: Hashable
 
@@ -133,8 +122,8 @@ internal func +(lhs: String, rhs: String) -> Path {
         // Absolute paths replace relative paths
         return Path(rhs)
     } else {
-        var lSlice = NSString(string: lhs).pathComponents.fullSlice
-        var rSlice = NSString(string: rhs).pathComponents.fullSlice
+        var lSlice = lhs.pathComponents.fullSlice
+        var rSlice = rhs.pathComponents.fullSlice
 
         // Get rid of trailing "/" at the left side
         if lSlice.count > 1 && lSlice.last == Path.separator {
