@@ -4,10 +4,10 @@ extension Path {
 
     enum FileError: ErrorProtocol {
         case unimplemented
-        case mkdir(Int)
-        case move(Int)
-        case delete(Int)
-        case symlink(Int)
+        case mkdir(Int, String)
+        case move(Int, String, String)
+        case delete(Int, String)
+        case symlink(Int, String, String)
     }
 
     /// Create the directory.
@@ -20,7 +20,7 @@ extension Path {
         let result = OperatingSystem.mkdir(path, S_IRWXU | S_IRWXG | S_IRWXO)
 
         if result != 0 && result != EEXIST {
-            throw FileError.mkdir(Int(errno))
+            throw FileError.mkdir(Int(errno), path)
         }
     }
 
@@ -32,7 +32,7 @@ extension Path {
     public func mkpath() throws {
         var path = ""
 
-        for component in self.components {
+        for component in components {
             path += component
 
             guard component != "/" else {
@@ -42,7 +42,7 @@ extension Path {
             let result = OperatingSystem.mkdir(path, S_IRWXU | S_IRWXG | S_IRWXO)
 
             if result != 0 && result != EEXIST {
-                throw FileError.mkdir(Int(errno))
+                throw FileError.mkdir(Int(errno), path)
             }
         }
     }
@@ -53,7 +53,7 @@ extension Path {
     ///   removed.
     ///
     public func delete() throws {
-        let result = nftw(self.path, { (path, sb, typeflag, ftw) -> Int32 in
+        let result = nftw(path, { (path, sb, typeflag, ftw) -> Int32 in
             let result = remove(path)
 
             if result != 0 {
@@ -64,7 +64,7 @@ extension Path {
         }, 64, FTW_DEPTH | FTW_PHYS)
 
         if result != 0 {
-            throw FileError.delete(Int(errno))
+            throw FileError.delete(Int(errno), path)
         }
     }
 
@@ -77,7 +77,7 @@ extension Path {
         let result = rename(path, destination.path)
 
         if result != 0 {
-            throw FileError.move(Int(errno))
+            throw FileError.move(Int(errno), path, destination.path)
         }
     }
 
@@ -105,10 +105,10 @@ extension Path {
     /// - Parameter destintation: The location where the link will be created.
     ///
     public func symlink(destination: Path) throws {
-        let result = OperatingSystem.symlink(destination.path, self.path)
+        let result = OperatingSystem.symlink(destination.path, path)
 
         if result != 0 {
-            throw FileError.symlink(Int(errno))
+            throw FileError.symlink(Int(errno), path, destination.path)
         }
     }
 
