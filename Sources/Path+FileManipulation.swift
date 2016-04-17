@@ -59,19 +59,27 @@ extension Path {
     ///   removed.
     ///
     public func delete() throws {
-        let info = StatInfo(path: self)
+        try self.delete(with: StatInfo(path: self))
+    }
+
+    private func delete(with info: StatInfo) throws {
         let result: Int32
 
         if info.directory {
-            result = nftw(path, { (path, sb, typeflag, ftw) -> Int32 in
-                let result = remove(path)
+            let iterator = try DirectoryIterator(path: self)
 
-                if result != 0 {
-                    perror(path)
+            while let element = iterator.next() {
+                let child: Path = iterator.path.path + element.name
+                let info = StatInfo(path: child)
+
+                guard !info.directory || !info.link else {
+                    continue
                 }
 
-                return result
-            }, 64, FTW_DEPTH | FTW_PHYS)
+                try child.delete(with: info)
+            }
+
+            result = remove(path)
         } else {
             result = remove(path)
         }
