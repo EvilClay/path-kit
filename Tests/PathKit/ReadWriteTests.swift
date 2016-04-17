@@ -9,7 +9,7 @@ class ReadWriteTests: BaseTests {
     }
 
     func testReadData() {
-        let path = Path("/etc/manpaths")
+        let path = fixtures + "read"
 
         guard let contents = AssertNoThrow(try path.read()) else {
             XCTFail("Could not read \(path)")
@@ -18,7 +18,7 @@ class ReadWriteTests: BaseTests {
 
         let string = AssertNoThrow(try String(data: contents))
 
-        XCTAssertTrue(string?.starts(with: "/usr/share/man") == true)
+        XCTAssertTrue(string == "hello")
     }
 
     func testReadNonExistingData() {
@@ -35,10 +35,10 @@ class ReadWriteTests: BaseTests {
     }
 
     func testReadString() {
-        let path = Path("/etc/manpaths")
-        let contents = try? path.readString()
+        let path = fixtures + "read"
+        let contents = (try? path.readString()) ?? nil
 
-        XCTAssertTrue(contents??.starts(with: "/usr/share/man") ?? false)
+        XCTAssertTrue(contents == "hello")
     }
 
     func testReadNonExistingString() {
