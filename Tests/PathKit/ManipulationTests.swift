@@ -4,7 +4,7 @@ import XCTest
 class ManipulationTests : XCTestCase {
 
     var fixtures: Path {
-        return Path(#file).parent() + "Fixtures"
+        return (Path(#file) + "../../../Fixtures")
     }
 
     var fixtureFile: Path {
@@ -15,7 +15,9 @@ class ManipulationTests : XCTestCase {
         let path = Path("file")
 
         if !path.exists {
-            try! fixtureFile.copy(path)
+            AssertNoThrow({
+                try fixtureFile.copy(path)
+            })
         }
 
         return path
@@ -116,7 +118,7 @@ class ManipulationTests : XCTestCase {
             try symlinkedFile.symlink(copiedFile)
             XCTAssertTrue(symlinkedFile.isFile)
             let symlinkDestination = try symlinkedFile.symlinkDestination()
-            XCTAssertEqual(symlinkDestination, copiedFile)
+            XCTAssertEqual(symlinkDestination, copiedFile.absolute())
         }
     }
 
