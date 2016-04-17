@@ -1,33 +1,47 @@
+import OperatingSystem
+
 extension Path: Sequence {
     /// Enumerates the contents of a directory, returning the paths of all files and directories
-    /// contained within that directory. These paths are relative to the directory.
-    public struct DirectoryEnumerator: IteratorProtocol {
+    /// contained within that directory.
+    public class DirectoryEnumerator: IteratorProtocol {
         public typealias Element = Path
 
-        let path: Path
-        let directoryEnumerator: NSDirectoryEnumerator
+        private let path: Path
+        private var iterators = [DirectoryIterator]()
 
         init(path: Path) {
             self.path = path
-
-            #if os(Linux)
-                self.directoryEnumerator = Path.fileManager.enumeratorAtPath(path.path)!
-            #else
-                self.directoryEnumerator = Path.fileManager.enumerator(atPath:path.path)!
-            #endif
+            appendIterator(for: path)
         }
 
         public func next() -> Path? {
-            if let next = directoryEnumerator.nextObject() as! String? {
-                return path + next
+            guard let iterator = iterators.last else {
+                return nil
             }
-            return nil
+
+            guard let element = iterator.next() else {
+                iterators.removeLast()
+                return next()
+            }
+
+            let path = Path(iterator.path.path + element.name)
+
+            if element.type == DT_DIR {
+                appendIterator(for: path)
+            }
+
+            return path
         }
 
-        /// Skip recursion into the most recently obtained subdirectory.
-        public func skipDescendants() {
-            directoryEnumerator.skipDescendants()
+        private func appendIterator(for path: Path) {
+            do {
+                let iterator = try DirectoryIterator(path: path)
+                iterators.append(iterator)
+            } catch {
+                print("Error opening: \(path): \(error)")
+            }
         }
+
     }
 
     /// Perform a deep enumeration of a directory.

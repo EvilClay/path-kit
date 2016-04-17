@@ -4,6 +4,7 @@ internal class DirectoryIterator: IteratorProtocol {
     typealias Element = (name: String, type: Int32?)
 
     private let dir: UnsafeMutablePointer<DIR>
+    internal let path: Path
 
     init(path: Path) throws {
         let dir = opendir(path.path)
@@ -13,6 +14,7 @@ internal class DirectoryIterator: IteratorProtocol {
         }
 
         self.dir = dir
+        self.path = path
     }
 
     func next() -> Element? {
