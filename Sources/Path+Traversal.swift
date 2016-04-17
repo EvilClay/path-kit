@@ -42,7 +42,7 @@ extension Path {
             let path = self + Path(item.name)
             children.append(path)
 
-            if item.type == Int32(DT_DIR) {
+            if item.type == Int32(DT_DIR) || (item.type == Int32(DT_UNKNOWN) && path.isDirectory) {
                 children += try path.recursiveChildren()
             }
         }
