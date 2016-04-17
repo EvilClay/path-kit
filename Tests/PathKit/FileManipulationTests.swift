@@ -138,7 +138,7 @@ class ManipulationTests: BaseTests {
         let path = fixtures + "symlinks/same-dir"
         AssertNoThrow {
             let resolvedPath = try path.symlinkDestination()
-            XCTAssertEqual(resolvedPath.normalize(), fixtures + "symlinks/file")
+            XCTAssertEqual(resolvedPath.normalize(), fixtures + "file")
         }
     }
 
