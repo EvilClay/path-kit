@@ -1,4 +1,11 @@
+import String
+
 extension Path {
+
+    enum InfoError: ErrorProtocol {
+        case realpath(Int)
+    }
+
     /// Test whether a path is absolute.
     ///
     /// - Returns: `true` iff the path begings with a slash
@@ -19,12 +26,28 @@ extension Path {
     ///
     /// - Returns: the absolute path in the actual filesystem
     ///
-    public func absolute() -> Path {
+    public func absolute() -> Path? {
         if isAbsolute {
             return normalize()
         }
 
-        return (Path.current + self).normalize()
+        guard let current = self.dynamicType.current else {
+            return nil
+        }
+
+        return (current + self).normalize()
+    }
+
+
+    internal func expandTilde() -> Path {
+        guard path.hasPrefix("~") else {
+            return self
+        }
+
+        var components = self.components
+        components.removeFirst()
+
+        return Path(components: Path.home.components + components)
     }
 
     /// Normalizes the path, this cleans up redundant ".." and ".", double slashes
@@ -34,11 +57,26 @@ extension Path {
     ///   representation.
     ///
     public func normalize() -> Path {
-        #if os(Linux)
-            return Path(NSString(string: self.path).stringByStandardizingPath)
-        #else
-            return Path(NSString(string: self.path).standardizingPath)
-        #endif
+        let components = self.expandTilde().components
+        var normalized = [String]()
+
+        for (i, component) in components.enumerated() {
+            guard component != "." else {
+                continue
+            }
+
+            guard component != "/" || i == 0 else {
+                continue
+            }
+
+            if component == ".." {
+                normalized.removeLast()
+            } else {
+                normalized.append(component)
+            }
+        }
+
+        return Path(components: normalized)
     }
 
     /// De-normalizes the path, by replacing the current user home directory with "~".
@@ -47,12 +85,17 @@ extension Path {
     ///   representation.
     ///
     public func abbreviate() -> Path {
-        #if os(Linux)
-            // TODO: actually de-normalize the path
+        guard let home = getenv(named: "HOME")?.trim(right: ["/"]) where home.characters.count > 0 else {
             return self
-        #else
-            return Path(NSString(string: self.path).abbreviatingWithTildeInPath)
-        #endif
+        }
+
+        let normalized = self.normalize().path
+
+        guard normalized.hasPrefix(home) else {
+            return self
+        }
+
+        return Path("~" + normalized[normalized.startIndex.advanced(by: home.characters.count)..<normalized.endIndex])
     }
 
     /// Returns the path of the item pointed to by a symbolic link.
@@ -60,18 +103,21 @@ extension Path {
     /// - Returns: the path of directory or file to which the symbolic link refers
     ///
     public func symlinkDestination() throws -> Path {
-        #if os(Linux)
-            let symlinkDestination = try Path.fileManager.destinationOfSymbolicLinkAtPath(path)
-        #else
-            let symlinkDestination = try Path.fileManager.destinationOfSymbolicLink(atPath:path)
-        #endif
+        let result = realpath(path, nil)
 
-        let symlinkPath = Path(symlinkDestination)
-        if symlinkPath.isRelative {
-            return self + ".." + symlinkPath
-        } else {
-            return symlinkPath
+        guard result != nil else {
+            throw InfoError.realpath(Int(errno))
         }
+
+        defer {
+            free(result)
+        }
+
+        guard let path = String(validatingUTF8: result) else {
+            throw InfoError.realpath(-1)
+        }
+
+        return Path(path)
     }
 
 }
