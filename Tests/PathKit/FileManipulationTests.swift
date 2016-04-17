@@ -127,10 +127,10 @@ class FileManipulationTests: BaseTests {
     }
 
     func testAbsoluteSymlinkDestination() {
-        let path = fixtures + "symlinks/swift"
+        let path = fixtures + "symlinks/env"
         AssertNoThrow {
             let resolvedPath = try path.symlinkDestination()
-            XCTAssertEqual(resolvedPath, Path("/usr/bin/swift"))
+            XCTAssertEqual(resolvedPath, Path("/usr/bin/env"))
         }
     }
 
