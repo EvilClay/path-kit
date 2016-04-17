@@ -4,7 +4,7 @@ import XCTest
 class ManipulationTests : XCTestCase {
 
     var fixtures: Path {
-        return Path(__FILE__).parent() + "Fixtures"
+        return Path(#file).parent() + "Fixtures"
     }
 
     var fixtureFile: Path {
@@ -13,20 +13,24 @@ class ManipulationTests : XCTestCase {
 
     var copiedFile: Path {
         let path = Path("file")
+
         if !path.exists {
             try! fixtureFile.copy(path)
         }
+
         return path
     }
 
     override func setUp() {
         super.setUp()
+
         Path.current = try! Path.uniqueTemporary()
     }
 
     override func tearDown() {
         super.tearDown()
-        try! Path.current.delete()
+
+        try! Path.current?.delete()
     }
 
     func testMkdir() {
@@ -37,7 +41,15 @@ class ManipulationTests : XCTestCase {
 
     func testMkdirWithNonExistingImmediateDirFails() {
         let testDir = Path("test_mkdir/test")
-        AssertThrows(NSCocoaError.FileNoSuchFileError) { try testDir.mkdir() }
+
+        do {
+            try testDir.mkdir()
+            XCTFail("\(#function) did not throw an error)")
+        } catch Path.FileError.mkdir {
+            return
+        } catch {
+            XCTFail("\(#function) threw unexpected error: \(error))")
+        }
     }
 
     func testMkdirWithExistingDirFails() {
@@ -45,7 +57,15 @@ class ManipulationTests : XCTestCase {
         AssertNoThrow {
             try testDir.mkdir()
             precondition(testDir.isDirectory)
-            AssertThrows(NSCocoaError.FileWriteFileExistsError) { try testDir.mkdir() }
+
+            do {
+                try testDir.mkdir()
+                XCTFail("\(#function) did not throw an error)")
+            } catch Path.FileError.mkdir {
+                return
+            } catch {
+                XCTFail("\(#function) threw unexpected error: \(error))")
+            }
         }
     }
 

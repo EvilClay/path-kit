@@ -1,15 +1,17 @@
 import XCTest
+import C7
 @testable import PathKit
 
 class PathKitTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
-        Path.current = Path(__FILE__).parent()
+
+        Path.current = Path(#file).parent()
     }
 
     var fixtures: Path {
-        return Path(__FILE__).parent() + "Fixtures"
+        return Path(#file).parent() + "Fixtures"
     }
 
     func testSeparator() {
@@ -18,7 +20,7 @@ class PathKitTests: XCTestCase {
 
     func testCurrent() {
         let path = Path.current
-        XCTAssertEqual(path.description, NSFileManager().currentDirectoryPath)
+        XCTAssertEqual(path?.description, String(validatingUTF8: getcwd(nil, Int(PATH_MAX))))
     }
 
     // MARK: Initialization
@@ -72,7 +74,7 @@ class PathKitTests: XCTestCase {
 
     func testConvertingRelativeToAbsolute() {
         let path = Path("swift")
-        XCTAssertEqual(path.absolute(), Path.current + Path("swift"))
+        XCTAssertEqual(path.absolute(), Path.current! + Path("swift"))
     }
 
     func testConvertingAbsoluteToAbsolute() {
@@ -212,10 +214,6 @@ class PathKitTests: XCTestCase {
         XCTAssertTrue((fixtures + "permissions/writable").isWritable)
     }
 
-    func testIsDeletable() {
-        XCTAssertTrue((fixtures + "permissions/deletable").isDeletable)
-    }
-
     // MARK: Change Directory
 
     func testChdir() {
@@ -231,12 +229,17 @@ class PathKitTests: XCTestCase {
     func testThrowingChdirWithThrowingClosure() {
         let current = Path.current
 
-        let error = NSError(domain: "org.cocode.PathKit", code: 1, userInfo: nil)
-        AssertThrows(error) {
+        let testError = NSError(domain: "org.cocode.PathKit", code: 1, userInfo: nil)
+
+        do {
             try Path("/usr/bin").chdir {
                 XCTAssertEqual(Path.current, Path("/usr/bin"))
-                throw error
+                throw testError
             }
+
+            XCTFail("testError should’ve thrown")
+        } catch {
+            XCTAssertEqual(error as NSError, testError)
         }
 
         XCTAssertEqual(Path.current, current)
@@ -275,17 +278,17 @@ class PathKitTests: XCTestCase {
 
     func testReadData() {
         let path = Path("/etc/manpaths")
-        let contents:NSData? = AssertNoThrow(try path.read())
-        let string = NSString(data:contents!, encoding: NSUTF8StringEncoding)!
+        let contents = AssertNoThrow(try path.read())
+        let string = AssertNoThrow(try String(data: contents!))
 
-        XCTAssertTrue(string.hasPrefix("/usr/share/man"))
+        XCTAssertTrue(string?.hasPrefix("/usr/share/man") == true)
     }
 
     func testReadNonExistingData() {
         let path = Path("/tmp/pathkit-testing")
 
         do {
-            try path.read() as NSData
+            try path.read()
             XCTFail("Error was not thrown from `read()`")
         } catch let error as NSError {
             XCTAssertEqual(error.domain, NSCocoaErrorDomain)
@@ -295,16 +298,16 @@ class PathKitTests: XCTestCase {
 
     func testReadString() {
         let path = Path("/etc/manpaths")
-        let contents:String? = try? path.read()
+        let contents = try? path.readString()
 
-        XCTAssertTrue(contents?.hasPrefix("/usr/share/man") ?? false)
+        XCTAssertTrue(contents??.hasPrefix("/usr/share/man") ?? false)
     }
 
     func testReadNonExistingString() {
         let path = Path("/tmp/pathkit-testing")
 
         do {
-            try path.read() as String
+            try path.readString()
             XCTFail("Error was not thrown from `read()`")
         } catch let error as NSError {
             XCTAssertEqual(error.domain, NSCocoaErrorDomain)
@@ -316,21 +319,21 @@ class PathKitTests: XCTestCase {
 
     func testWriteData() {
         let path = Path("/tmp/pathkit-testing")
-        let data = "Hi".dataUsingEncoding(NSUTF8StringEncoding, allowLossyConversion: true)
+        let data = Data("Hi")
 
         XCTAssertFalse(path.exists)
 
-        AssertNoThrow(try path.write(data!))
+        AssertNoThrow(try path.write(data: data))
         XCTAssertEqual(try? path.read(), "Hi")
         AssertNoThrow(try path.delete())
     }
 
     func testWriteDataThrowsOnFailure() {
         let path = Path("/")
-        let data = "Hi".dataUsingEncoding(NSUTF8StringEncoding, allowLossyConversion: true)
+        let data = Data("Hi")
 
         do {
-            try path.write(data!)
+            try path.write(data: data)
             XCTFail("Error was not thrown from `write()`")
         } catch let error as NSError {
             XCTAssertEqual(error.domain, NSCocoaErrorDomain)
@@ -343,7 +346,7 @@ class PathKitTests: XCTestCase {
 
         XCTAssertFalse(path.exists)
 
-        AssertNoThrow(try path.write("Hi"))
+        AssertNoThrow(try path.write(string: "Hi"))
         XCTAssertEqual(try? path.read(), "Hi")
         AssertNoThrow(try path.delete())
     }
@@ -352,7 +355,7 @@ class PathKitTests: XCTestCase {
         let path = Path("/")
 
         do {
-            try path.write("hi")
+            try path.write(string: "hi")
             XCTFail("Error was not thrown from `write()`")
         } catch let error as NSError {
             XCTAssertEqual(error.domain, NSCocoaErrorDomain)
@@ -400,11 +403,11 @@ class PathKitTests: XCTestCase {
     func testSequenceType() {
         let path = fixtures + "directory"
         var children = ["child", "subdirectory"].map { path + $0 }
-        let generator = path.generate()
+        let generator = path.makeIterator()
         while let child = generator.next() {
             generator.skipDescendants()
-            if let index = children.indexOf(child) {
-                children.removeAtIndex(index)
+            if let index = children.index(of: child) {
+                children.remove(at: index)
             } else {
                 XCTFail("Generated unexpected element: <\(child)>")
             }
@@ -465,7 +468,7 @@ class PathKitTests: XCTestCase {
             let pattern = (fixtures + "permissions/*able").description
             let paths = Path.glob(pattern)
 
-            let results = try (fixtures + "permissions").children().map { $0.absolute() }
+            let results = try (fixtures + "permissions").children().map { $0.absolute()! }
             XCTAssertEqual(paths, results)
         }
     }
@@ -474,9 +477,25 @@ class PathKitTests: XCTestCase {
         AssertNoThrow {
             let paths = fixtures.glob("permissions/*able")
 
-            let results = try (fixtures + "permissions").children().map { $0.absolute() }
+            let results = try (fixtures + "permissions").children().map { $0.absolute()! }
             XCTAssertEqual(paths, results)
         }
     }
 
+}
+
+public func AssertNoThrow<R>(@autoclosure closure: () throws -> R) -> R? {
+    var result: R?
+    AssertNoThrow() {
+        result = try closure()
+    }
+    return result
+}
+
+func AssertNoThrow(@noescape closure: () throws -> ()) {
+    do {
+        try closure()
+    } catch let error {
+        XCTFail("Caught unexpected error <\(error)>.")
+    }
 }
