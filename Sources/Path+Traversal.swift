@@ -19,20 +19,11 @@ extension Path {
     /// - Returns: paths to all files, directories and symbolic links contained in the directory
     ///
     public func children() throws -> [Path] {
-        let dir = opendir(path)
-
-        if dir == nil {
-            throw TraversalError.opendir(Int(errno))
-        }
-
-        defer {
-            closedir(dir)
-        }
-
+        let iterator = try DirectoryIterator(path: self)
         var children = [Path]()
 
-        try read(dir) { (name, _) in
-            children.append(self + Path(name))
+        while let item = iterator.next() {
+            children.append(self + Path(item.name))
         }
 
         return children
@@ -44,23 +35,14 @@ extension Path {
     ///   any subdirectory.
     ///
     public func recursiveChildren() throws -> [Path] {
-        let dir = opendir(path)
-
-        if dir == nil {
-            throw TraversalError.opendir(Int(errno))
-        }
-
-        defer {
-            closedir(dir)
-        }
-
+        let iterator = try DirectoryIterator(path: self)
         var children = [Path]()
 
-        try read(dir) { (name, type) in
-            let path = self + Path(name)
+        while let item = iterator.next() {
+            let path = self + Path(item.name)
             children.append(path)
 
-            if type == DT_DIR {
+            if item.type == DT_DIR {
                 children += try path.recursiveChildren()
             }
         }
