@@ -13,7 +13,7 @@ class ReadWriteTests: BaseTests {
         let contents = AssertNoThrow(try path.read())
         let string = AssertNoThrow(try String(data: contents!))
 
-        XCTAssertTrue(string?.hasPrefix("/usr/share/man") == true)
+        XCTAssertTrue(string?.starts(with: "/usr/share/man") == true)
     }
 
     func testReadNonExistingData() {
@@ -33,7 +33,7 @@ class ReadWriteTests: BaseTests {
         let path = Path("/etc/manpaths")
         let contents = try? path.readString()
 
-        XCTAssertTrue(contents??.hasPrefix("/usr/share/man") ?? false)
+        XCTAssertTrue(contents??.starts(with: "/usr/share/man") ?? false)
     }
 
     func testReadNonExistingString() {

@@ -11,7 +11,7 @@ extension Path {
     /// - Returns: `true` iff the path begings with a slash
     ///
     public var isAbsolute: Bool {
-        return path.hasPrefix(Path.separator)
+        return path.starts(with: Path.separator)
     }
 
     /// Test whether a path is relative.
@@ -39,7 +39,7 @@ extension Path {
     }
 
     internal func expandTilde() -> Path {
-        guard path.hasPrefix("~") else {
+        guard path.starts(with: "~") else {
             return self
         }
 
@@ -90,7 +90,7 @@ extension Path {
 
         let normalized = self.normalize().path
 
-        guard normalized.hasPrefix(home) else {
+        guard normalized.starts(with: home) else {
             return self
         }
 

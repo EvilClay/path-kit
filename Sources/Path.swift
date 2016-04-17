@@ -136,7 +136,7 @@ public func +(lhs: Path, rhs: String) -> Path {
 
 /// Appends a String fragment to another String to produce a new Path
 internal func +(lhs: String, rhs: String) -> Path {
-    if rhs.hasPrefix(Path.separator) {
+    if rhs.starts(with: Path.separator) {
         // Absolute paths replace relative paths
         return Path(rhs)
     } else {
