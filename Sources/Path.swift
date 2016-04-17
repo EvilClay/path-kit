@@ -17,7 +17,7 @@ public struct Path {
 
     /// Create a Path from a given String
     public init(_ path: String) {
-        self.path = path.trim(right: ["/"])
+        self.path = path.trimTrailingSlashes()
     }
 
     /// Create a Path by joining multiple path components together
@@ -162,5 +162,11 @@ internal func +(lhs: String, rhs: String) -> Path {
 extension Array {
     var fullSlice: ArraySlice<Element> {
         return self[0..<self.endIndex]
+    }
+}
+
+extension String {
+    func trimTrailingSlashes() -> String {
+        return self == "/" ? self : self.trim(right: ["/"])
     }
 }

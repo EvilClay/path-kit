@@ -84,7 +84,7 @@ extension Path {
     ///   representation.
     ///
     public func abbreviate() -> Path {
-        guard let home = getenv(named: "HOME")?.trim(right: ["/"]) where home.characters.count > 0 else {
+        guard let home = getenv(named: "HOME")?.trimTrailingSlashes() where home.characters.count > 0 else {
             return self
         }
 
