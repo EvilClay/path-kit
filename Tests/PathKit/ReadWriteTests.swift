@@ -10,8 +10,13 @@ class ReadWriteTests: BaseTests {
 
     func testReadData() {
         let path = Path("/etc/manpaths")
-        let contents = AssertNoThrow(try path.read())
-        let string = AssertNoThrow(try String(data: contents!))
+
+        guard let contents = AssertNoThrow(try path.read()) else {
+            XCTFail("Could not read \(path)")
+            return
+        }
+
+        let string = AssertNoThrow(try String(data: contents))
 
         XCTAssertTrue(string?.starts(with: "/usr/share/man") == true)
     }
