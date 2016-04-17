@@ -33,6 +33,10 @@ extension Path: Sequence {
             return path
         }
 
+        public func skipDescendants() {
+            iterators.removeLast()
+        }
+
         private func appendIterator(for path: Path) {
             do {
                 let iterator = try DirectoryIterator(path: path)
