@@ -8,6 +8,7 @@ extension Path: Sequence {
 
         private let path: Path
         private var iterators = [DirectoryIterator]()
+        private var descended = false
 
         init(path: Path) {
             self.path = path
@@ -24,25 +25,31 @@ extension Path: Sequence {
                 return next()
             }
 
-            let path = Path(iterator.path.path + element.name)
+            let path: Path = iterator.path.path + element.name
 
-            if element.type == DT_DIR {
-                appendIterator(for: path)
+            if element.type == DT_DIR && appendIterator(for: path) {
+                descended = true
+            } else {
+                descended = false
             }
 
             return path
         }
 
         public func skipDescendants() {
-            iterators.removeLast()
+            if descended {
+                iterators.removeLast()
+            }
         }
 
-        private func appendIterator(for path: Path) {
+        private func appendIterator(for path: Path) -> Bool {
             do {
                 let iterator = try DirectoryIterator(path: path)
                 iterators.append(iterator)
+                return true
             } catch {
                 print("Error opening: \(path): \(error)")
+                return false
             }
         }
 
