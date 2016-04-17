@@ -11,7 +11,13 @@ extension Path {
 
     /// - Returns: the path of the temporary directory for the current user.
     public static var temporary: Path {
-        return Path(getenv(named: "TMP") ?? "/")
+        return Path(
+            getenv(named: "TMPDIR") ??
+            getenv(named: "TMP") ??
+            getenv(named: "TEMP") ??
+            getenv(named: "TEMPDIR") ??
+            "/tmp"
+        )
     }
 
     /// - Returns: the path of a temporary directory unique for the process.
