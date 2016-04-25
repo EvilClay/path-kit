@@ -12,7 +12,7 @@ class FileManipulationTests: BaseTests {
 
         if !path.exists {
             AssertNoThrow({
-                try fixtureFile.copy(path)
+                try fixtureFile.copy(to: path)
             })
         }
 
@@ -87,7 +87,7 @@ class FileManipulationTests: BaseTests {
     func testCopy() {
         let copiedFile = Path("file")
         AssertNoThrow {
-            try fixtureFile.copy(copiedFile)
+            try fixtureFile.copy(to: copiedFile)
             XCTAssertTrue(copiedFile.isFile)
         }
     }
@@ -95,7 +95,7 @@ class FileManipulationTests: BaseTests {
     func testMove() {
         let movedFile = Path("moved")
         AssertNoThrow {
-            try copiedFile.move(movedFile)
+            try copiedFile.move(to: movedFile)
             XCTAssertTrue(movedFile.isFile)
         }
     }
@@ -103,7 +103,7 @@ class FileManipulationTests: BaseTests {
     func testLink() {
         let linkedFile = Path("linked")
         AssertNoThrow {
-            try copiedFile.link(linkedFile)
+            try copiedFile.link(to: linkedFile)
             XCTAssertTrue(linkedFile.isFile)
         }
     }
@@ -111,7 +111,7 @@ class FileManipulationTests: BaseTests {
     func testSymlink() {
         let symlinkedFile = Path("symlinked")
         AssertNoThrow {
-            try symlinkedFile.symlink(copiedFile)
+            try symlinkedFile.symlink(to: copiedFile)
             XCTAssertTrue(symlinkedFile.isFile)
             let symlinkDestination = try symlinkedFile.symlinkDestination()
             XCTAssertEqual(symlinkDestination, copiedFile.absolute())

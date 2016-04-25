@@ -1,4 +1,4 @@
-import OperatingSystem
+import POSIX
 
 internal struct StatInfo {
 

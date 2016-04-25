@@ -1,4 +1,4 @@
-import OperatingSystem
+import POSIX
 
 extension Path {
     private static let processUUID = UUID.make()

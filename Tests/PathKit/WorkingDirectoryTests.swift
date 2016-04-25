@@ -1,5 +1,5 @@
 import XCTest
-import OperatingSystem
+import POSIX
 
 @testable import PathKit
 

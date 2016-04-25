@@ -1,4 +1,5 @@
 import String
+import POSIX
 
 extension Path {
 

@@ -16,7 +16,7 @@ class BaseTests: XCTestCase {
 
 }
 
-func AssertNoThrow<R>(@autoclosure closure: () throws -> R) -> R? {
+func AssertNoThrow<R>(@autoclosure _ closure: () throws -> R) -> R? {
     var result: R?
     AssertNoThrow() {
         result = try closure()
@@ -24,7 +24,7 @@ func AssertNoThrow<R>(@autoclosure closure: () throws -> R) -> R? {
     return result
 }
 
-func AssertNoThrow(@noescape closure: () throws -> ()) {
+func AssertNoThrow(@noescape _ closure: () throws -> ()) {
     do {
         try closure()
     } catch let error {

@@ -1,4 +1,4 @@
-import OperatingSystem
+import POSIX
 
 #if os(Linux)
     typealias UnsafeDir = OpaquePointer

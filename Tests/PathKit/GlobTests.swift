@@ -6,7 +6,7 @@ class GlobTests: BaseTests {
     func testStaticGlob() {
         AssertNoThrow {
             let pattern = (fixtures + "permissions/*able").description
-            let paths = Path.glob(pattern)
+            let paths = Path.glob(pattern: pattern)
 
             let results = try (fixtures + "permissions").children().map { $0.absolute()! }
             XCTAssertEqual(paths.sorted(), results.sorted())
@@ -15,7 +15,7 @@ class GlobTests: BaseTests {
 
     func testPathGlob() {
         AssertNoThrow {
-            let paths = fixtures.glob("permissions/*able")
+            let paths = fixtures.glob(pattern: "permissions/*able")
 
             let results = try (fixtures + "permissions").children().map { $0.absolute()! }
             XCTAssertEqual(paths.sorted(), results.sorted())

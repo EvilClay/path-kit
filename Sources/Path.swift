@@ -185,6 +185,6 @@ extension Array {
 
 extension String {
     func trimTrailingSlashes() -> String {
-        return self == "/" ? self : self.trim(right: ["/"])
+        return self == "/" ? self : self.trimRight(["/"])
     }
 }

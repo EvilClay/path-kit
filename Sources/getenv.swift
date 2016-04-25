@@ -1,7 +1,7 @@
-import OperatingSystem
+import POSIX
 
 internal func getenv(named name: String) -> String? {
-    let value = OperatingSystem.getenv(name)
+    let value = POSIX.getenv(name)
 
     guard value != nil else {
         return nil

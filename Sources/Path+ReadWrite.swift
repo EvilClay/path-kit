@@ -1,4 +1,4 @@
-import OperatingSystem
+import POSIX
 import String
 import C7
 
@@ -43,7 +43,7 @@ extension Path {
         while remaining > 0 {
             let advanced = rawData.advanced(by: total)
 
-            let amt = OperatingSystem.read(fd, advanced, remaining)
+            let amt = POSIX.read(fd, advanced, remaining)
             if amt < 0 {
                 break
             }
@@ -74,7 +74,7 @@ extension Path {
     ///
     /// - Parameter data: the contents to write to file.
     ///
-    public func write(data data: Data) throws {
+    public func write(data: Data) throws {
         let file = fopen(path, "w")
 
         guard file != nil else {
@@ -92,7 +92,7 @@ extension Path {
     ///
     /// - Parameter string: the string to write to file.
     ///
-    public func write(string string: String) throws {
+    public func write(string: String) throws {
         try write(data: Data(string))
     }
 

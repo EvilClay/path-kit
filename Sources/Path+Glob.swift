@@ -1,4 +1,4 @@
-import OperatingSystem
+import POSIX
 
 extension Path {
     public static func glob(pattern: String) -> [Path] {
@@ -9,7 +9,7 @@ extension Path {
         defer { free(cPattern) }
 
         let flags = GLOB_TILDE | GLOB_BRACE | GLOB_MARK
-        if OperatingSystem.glob(cPattern, flags, nil, &gt) == 0 {
+        if POSIX.glob(cPattern, flags, nil, &gt) == 0 {
 			let count: Int
 
 			#if os(Linux)
@@ -19,7 +19,7 @@ extension Path {
 			#endif
 
             return (0..<count).flatMap { index in
-                if let path = String(validatingUTF8: gt.gl_pathv[index]) {
+                if let utf8 = gt.gl_pathv[index], let path = String(validatingUTF8: utf8) {
                     return Path(path)
                 }
 
@@ -32,7 +32,7 @@ extension Path {
     }
 
     public func glob(pattern: String) -> [Path] {
-        return Path.glob((self + pattern).path)
+        return Path.glob(pattern: (self + pattern).path)
     }
 
 }

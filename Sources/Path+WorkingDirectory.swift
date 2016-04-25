@@ -1,4 +1,4 @@
-import OperatingSystem
+import POSIX
 
 extension Path {
     /// The current working directory of the process
@@ -27,7 +27,7 @@ extension Path {
                 return
             }
 
-            OperatingSystem.chdir(newValue)
+            POSIX.chdir(newValue)
         }
     }
 

@@ -1,4 +1,4 @@
-import OperatingSystem
+import POSIX
 
 extension Path: Sequence {
     /// Enumerates the contents of a directory, returning the paths of all files and directories

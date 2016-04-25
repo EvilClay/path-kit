@@ -1,4 +1,4 @@
-import OperatingSystem
+import POSIX
 
 extension Path {
 
@@ -20,7 +20,7 @@ extension Path {
     ///   not a directory.
     ///
     public func mkdir() throws {
-        let result = OperatingSystem.mkdir(path, S_IRWXU | S_IRWXG | S_IRWXO)
+        let result = POSIX.mkdir(path, S_IRWXU | S_IRWXG | S_IRWXO)
 
         if result != 0 {
             throw FileError.mkdir(Int(errno), path)
@@ -46,7 +46,7 @@ extension Path {
                 path += "/" + component
             }
 
-            let result = OperatingSystem.mkdir(path, S_IRWXU | S_IRWXG | S_IRWXO)
+            let result = POSIX.mkdir(path, S_IRWXU | S_IRWXG | S_IRWXO)
 
             if result != 0 && errno != EEXIST {
                 throw FileError.mkdir(Int(errno), path)
@@ -95,7 +95,7 @@ extension Path {
     /// - Parameter destination: The new path. This path must include the name of the file or
     ///   directory in its new location.
     ///
-    public func move(destination: Path) throws {
+    public func move(to destination: Path) throws {
         let result = rename(path, destination.path)
 
         if result != 0 {
@@ -108,7 +108,7 @@ extension Path {
     /// - Parameter destination: The new path. This path must include the name of the file or
     ///   directory in its new location.
     ///
-    public func copy(destination: Path) throws {
+    public func copy(to destination: Path) throws {
         let info = StatInfo(path: self)
 
         guard info.exists else {
@@ -151,7 +151,7 @@ extension Path {
             defer { buffer.deinitialize() }
 
             while true {
-                var nread = OperatingSystem.read(input, &buffer, chunkSize)
+                var nread = POSIX.read(input, &buffer, chunkSize)
 
                 if nread <= 0 {
                     break
@@ -160,7 +160,7 @@ extension Path {
                 var nwritten = 0
 
                 repeat {
-                    nwritten = OperatingSystem.write(output, buffer, nread)
+                    nwritten = POSIX.write(output, buffer, nread)
 
                     if nwritten >= 0 {
                         nread -= nwritten
@@ -198,8 +198,8 @@ extension Path {
     ///
     /// - Parameter destination: The location where the link will be created.
     ///
-    public func link(destination: Path) throws {
-        let result = OperatingSystem.link(path, destination.path)
+    public func link(to destination: Path) throws {
+        let result = POSIX.link(path, destination.path)
 
         if result != 0 {
             throw FileError.link(Int(errno), path, destination.path)
@@ -210,8 +210,8 @@ extension Path {
     ///
     /// - Parameter destintation: The location where the link will be created.
     ///
-    public func symlink(destination: Path) throws {
-        let result = OperatingSystem.symlink(destination.path, path)
+    public func symlink(to destination: Path) throws {
+        let result = POSIX.symlink(destination.path, path)
 
         if result != 0 {
             throw FileError.symlink(Int(errno), path, destination.path)

@@ -1,4 +1,4 @@
-import OperatingSystem
+import POSIX
 
 final internal class UUID {
     private static var ordinal = UInt32(0)
