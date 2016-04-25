@@ -53,8 +53,8 @@ extension String {
     internal var pathComponents: [String] {
         var components = self.trimTrailingSlashes().split(separator: Character(Path.separator))
 
-        if components.first == "" {
-            components[0] = Path.separator
+        if self.starts(with: "/") {
+            components.insert("/", at: 0)
         }
 
         return components
