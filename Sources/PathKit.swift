@@ -27,7 +27,7 @@ public struct Path {
   /// The underlying string representation
   internal var path: String
 
-  internal static var fileManager = NSFileManager.defaultManager()
+  internal static var fileManager = NSFileManager()
 
   // MARK: Init
 
@@ -68,7 +68,7 @@ public struct Path {
       let index = p.startIndex.distance( to: p.startIndex.successor())
       path = NSString(string: p).substringFromIndex(index)
 #else
-      path = p.substring(from: p.startIndex.successor())
+      path = p.substring(from: p.index(after: p.startIndex))
 #endif
 
     } else {
@@ -576,7 +576,7 @@ extension Path {
   /// - Parameter closure: A closure to be executed while the current directory is configured to
   ///   the path.
   ///
-  public func chdir(@noescape closure: () throws -> ()) rethrows {
+  public func chdir(closure: @noescape() throws -> ()) rethrows {
     let previous = Path.current
     Path.current = self
     defer { Path.current = previous }
@@ -801,7 +801,7 @@ extension Path {
       }
       #else
         return (0..<Int(matchc)).flatMap { index in
-          if let path = String(validatingUTF8: gt.gl_pathv[index]) {
+          if let utf8 = gt.gl_pathv[index], path = String(validatingUTF8: utf8) {
             return Path(path)
           }
 
@@ -815,7 +815,7 @@ extension Path {
   }
 
   public func glob(pattern: String) -> [Path] {
-    return Path.glob((self + pattern).description)
+    return Path.glob(pattern: (self + pattern).description)
   }
 }
 

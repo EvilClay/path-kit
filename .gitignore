@@ -9,7 +9,7 @@ build/
 !default.mode1v3
 *.mode2v3
 !default.mode2v3
-*.perspectivev3
+*.perspectivev3/Volumes/Users/clay/Projects/xCode/CatchingFire
 !default.perspectivev3
 xcuserdata
 *.xccheckout
@@ -18,6 +18,7 @@ DerivedData
 *.hmap
 *.ipa
 *.xcuserstate
+.DS_Store
 
 # CocoaPods
 #
@@ -29,3 +30,4 @@ DerivedData
 
 # Swift Package Manager
 .build/
+Packages/
